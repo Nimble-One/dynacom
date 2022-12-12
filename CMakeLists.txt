@@ -50,8 +50,10 @@ add_project_dependency(eiquadprog REQUIRED)
 
 if(BUILD_TESTING)
   find_package(Boost REQUIRED COMPONENTS unit_test_framework)
-  find_package(example-robot-data REQUIRED)
-  find_package(aig REQUIRED)
+  if(BUILD_PYTHON_INTERFACE)
+    find_package(example-robot-data REQUIRED)
+    find_package(aig REQUIRED)
+  endif()
 endif()
 
 if(BUILD_PYTHON_INTERFACE)
