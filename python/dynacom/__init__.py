@@ -4,5 +4,5 @@ from .dynacom import (
     Contact6D,
     Contact6DSettings,
     DynaCoMSettings,
-    DynaCoM
+    DynaCoM,
 )  # noqa: F401

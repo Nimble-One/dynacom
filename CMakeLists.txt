@@ -70,41 +70,36 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/python.hpp #
     include/${PROJECT_NAME}/contact6d.hpp #
 )
-set(${PROJECT_NAME}_SOURCES
-    src/dyna_com.cpp #
-    src/contac6d.cpp #
+set(${PROJECT_NAME}_SOURCES src/dyna_com.cpp #
+                            src/contac6d.cpp #
 )
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES}
                                    ${${PROJECT_NAME}_HEADERS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
-target_link_libraries(${PROJECT_NAME} PUBLIC pinocchio::pinocchio eiquadprog::eiquadprog)
+target_link_libraries(${PROJECT_NAME} PUBLIC pinocchio::pinocchio
+                                             eiquadprog::eiquadprog)
 
 if(SUFFIX_SO_VERSION)
   set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION})
 endif()
 
-# Python Bindings
-# if(BUILD_PYTHON_INTERFACE)
-#   add_subdirectory(python)
-# endif()
+# Python Bindings if(BUILD_PYTHON_INTERFACE) add_subdirectory(python) endif()
 if(BUILD_PYTHON_INTERFACE)
-  set(${PY_NAME}_SOURCES
-    python/contact_6d.cpp
-    python/dynacom_modules.cpp
-    python/dyna_com.cpp
-  )
+  set(${PY_NAME}_SOURCES python/contact_6d.cpp python/dynacom_modules.cpp
+                         python/dyna_com.cpp)
   add_library(${PY_NAME}_py SHARED ${${PY_NAME}_SOURCES})
   target_link_libraries(${PY_NAME}_py PUBLIC ${PROJECT_NAME} eigenpy::eigenpy)
-  # target_include_directories(${PY_NAME}_py SYSTEM PRIVATE ${PYTHON_INCLUDE_DIR})
-  set_target_properties(${PY_NAME}_py PROPERTIES
-    INSTALL_RPATH "$ORIGIN/../../.."
-    LIBRARY_OUTPUT_DIRECTORY ${PY_NAME}
-    OUTPUT_NAME ${PY_NAME}
-    PREFIX ""
-    SUFFIX ${PYTHON_EXT_SUFFIX}
-  )
-  TARGET_LINK_BOOST_PYTHON(${PY_NAME}_py PRIVATE)
+  # target_include_directories(${PY_NAME}_py SYSTEM PRIVATE
+  # ${PYTHON_INCLUDE_DIR})
+  set_target_properties(
+    ${PY_NAME}_py
+    PROPERTIES INSTALL_RPATH "$ORIGIN/../../.."
+               LIBRARY_OUTPUT_DIRECTORY ${PY_NAME}
+               OUTPUT_NAME ${PY_NAME}
+               PREFIX ""
+               SUFFIX ${PYTHON_EXT_SUFFIX})
+  target_link_boost_python(${PY_NAME}_py PRIVATE)
   install(TARGETS ${PY_NAME}_py DESTINATION ${${PY_NAME}_INSTALL_DIR})
   install(DIRECTORY python/dynacom DESTINATION ${${PY_NAME}_INSTALL_DIR}/..)
 endif()
