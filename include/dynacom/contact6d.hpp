@@ -18,10 +18,12 @@
 
 namespace dynacom {
 
-class BaseContact {
+class ContactBase {
  protected:
   pinocchio::SE3 oMs_, cMo_;
 
+  Eigen::VectorXd contactForce_;
+  size_t frameID_;
   // matrices
   Eigen::MatrixXd unilaterality_A_;
   Eigen::VectorXd unilaterality_b_;
@@ -30,40 +32,29 @@ class BaseContact {
   Eigen::VectorXd regularization_A_;
   Eigen::VectorXd regularization_b_;
   Eigen::Matrix<double, 6, -1> newton_euler_A_;
-
-  // 
-  Eigen::VectorXd contactForce_;
-  size_t frameID_;
   
  public:
-  BaseContact() {}
+  ContactBase() {}
   // virtual ~Contact() {}
 
   // setters
-  virtual void setMu(const double &mu) = 0;
-
-  virtual void updateNewtonEuler(const Eigen::Vector3d &CoM, 
-                                 const pinocchio::SE3 &oMf) = 0;
-    
+  void setPose(pinocchio::SE3 &pose) { oMs_ = pose; }
   void setFrameID(const size_t frameID) { frameID_ = frameID; }
   void applyForce(const Eigen::MatrixXd &force) {
     contactForce_ << force;
   }
+  void deactivate() { contactForce_.setZero(); }
 
+  virtual void updateNewtonEuler(const Eigen::Vector3d &CoM, 
+                                 const pinocchio::SE3 &oMf) = 0;
+    
   // getters
-  virtual std::string &getFrameName() = 0;
-
-  const Eigen::Matrix<double, 6, 6> toWorldForces() {
-    return oMs_.toActionMatrixInverse().transpose();
-  }
-  const Eigen::Matrix<double, 6, 6> toCoMForces() {
-    return cMo_.act(oMs_).toActionMatrixInverse().transpose();
-  }
-
+  const pinocchio::SE3 &getPose() const { return oMs_; }
+  size_t getFrameID() const { return frameID_; }
   size_t uni_rows() const { return unilaterality_A_.rows(); }
   size_t fri_rows() const { return friction_A_.rows(); }
   size_t cols() const { return newton_euler_A_.cols(); }
-  size_t getFrameID() const { return frameID_; }
+  const Eigen::VectorXd &appliedForce() { return contactForce_; }
 
   const Eigen::MatrixXd &uni_A() { return unilaterality_A_; }
   const Eigen::VectorXd &uni_b() { return unilaterality_b_; }
@@ -73,8 +64,14 @@ class BaseContact {
   const Eigen::VectorXd &reg_b() { return regularization_b_; }
   const Eigen::Matrix<double, 6, -1> &NE_A() { return newton_euler_A_; }
 
-  const Eigen::VectorXd &appliedForce() { return contactForce_; }
+  const Eigen::Matrix<double, 6, 6> toWorldForces() {
+    return oMs_.toActionMatrixInverse().transpose();
+  }
+  const Eigen::Matrix<double, 6, 6> toCoMForces() {
+    return cMo_.act(oMs_).toActionMatrixInverse().transpose();
+  }
 
+  virtual std::string &getFrameName() = 0;
 };
 
 struct Contact6DSettings {
@@ -116,28 +113,14 @@ struct Contact6DSettings {
   }
 };
 
-class Contact6D {
+class Contact6D : public ContactBase{
  private:
   Contact6DSettings settings_;
-  pinocchio::SE3 oMs_, cMo_;
-
-  // matrices
-  Eigen::Matrix<double, 5, 6> unilaterality_A_;
-  Eigen::Matrix<double, 5, 1> unilaterality_b_;
-  Eigen::Matrix<double, 6, 6> friction_A_;
-  Eigen::Matrix<double, 6, 1> friction_b_;
-  Eigen::Matrix<double, 6, 1> regularization_A_;
-  Eigen::Matrix<double, 6, 1> regularization_b_;
-  Eigen::Matrix<double, 6, 6> newton_euler_A_;
-  Eigen::Matrix<double, 6, 1> contactForce_;
-  size_t frameID_;
 
  public:
   Contact6D();
   Contact6D(const Contact6DSettings &settings);
   void initialize(const Contact6DSettings &settings);
-
-  // ~Contact6D();
 
   // setters
   void setMu(const double &mu);
@@ -147,45 +130,12 @@ class Contact6D {
   void setSurfaceHalfWidth(const double &half_width);
   void setSurfaceHalfLength(const double &half_length);
   void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3 &oMf);
-  void setFrameID(const size_t frameID) { frameID_ = frameID; }
-  void applyForce(const Eigen::Matrix<double, 6, 1> &force) {
-    contactForce_ << force;
-  }
-  void setPose(pinocchio::SE3 &pose) { oMs_ = pose; }
-  void deactivate() { contactForce_.setZero(); }
 
   // getters
   const Contact6DSettings &getSettings() { return settings_; }
-  const Eigen::Matrix<double, 6, 6> toWorldForces() {
-    return oMs_.toActionMatrixInverse().transpose();
-  }
-  const Eigen::Matrix<double, 6, 6> toCoMForces() {
-    return cMo_.act(oMs_).toActionMatrixInverse().transpose();
-  }
-  size_t uni_rows() const { return unilaterality_A_.rows(); }
-  size_t fri_rows() const { return friction_A_.rows(); }
-  size_t cols() const { return newton_euler_A_.cols(); }
-  size_t getFrameID() const { return frameID_; }
   std::string &getFrameName() { return settings_.frame_name; }
-
-  const pinocchio::SE3 &getPose() const { return oMs_; }
-
-  const Eigen::Matrix<double, 5, 6> &uni_A() { return unilaterality_A_; }
-  const Eigen::Matrix<double, 5, 1> &uni_b() { return unilaterality_b_; }
-  const Eigen::Matrix<double, 6, 6> &fri_A() { return friction_A_; }
-  const Eigen::Matrix<double, 6, 1> &fri_b() { return friction_b_; }
-  const Eigen::Matrix<double, 6, 1> &reg_A() { return regularization_A_; }
-  const Eigen::Matrix<double, 6, 1> &reg_b() { return regularization_b_; }
-  const Eigen::Matrix<double, 6, 6> &NE_A() { return newton_euler_A_; }
-
-  const Eigen::Matrix<double, 6, 1> &appliedForce() { return contactForce_; }
 };
 
-///// Start of future contact point. ////////////
-/**
- * Still missing the definition of the abstract class Contact which will be
- * the ansester of ContactPoint and Contact6D. Similar for the settings.
- */
 struct ContactPointSettings {
  public:
   double mu;
@@ -218,7 +168,7 @@ struct ContactPointSettings {
   bool operator!=(const ContactPointSettings &rhs) { return !(*this == rhs); }
 };
 
-class ContactPoint : public BaseContact {
+class ContactPoint : public ContactBase {
  private:
   ContactPointSettings settings_;
 
@@ -228,10 +178,9 @@ class ContactPoint : public BaseContact {
   void initialize(const ContactPointSettings &settings);
 
   // setters
-  void setForceWeights(const Eigen::Vector3d &force_weights);
   void setMu(const double &mu);
-  void updateNewtonEuler(const Eigen::Vector3d &CoM, 
-                                 const pinocchio::SE3 &oMf);
+  void setForceWeights(const Eigen::Vector3d &force_weights);
+  void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3 &oMf);
 
   // getters
   const ContactPointSettings &getSettings() { return settings_; }

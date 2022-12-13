@@ -22,7 +22,7 @@ bp::dict get_settings(DynaCoM &self) {
   return settings;
 }
 
-std::shared_ptr<Contact6D> getContact(DynaCoM &self, std::string name) {
+std::shared_ptr<ContactBase> getContact(DynaCoM &self, std::string name) {
   return boost::ref(self.getContact(name));
 }
 

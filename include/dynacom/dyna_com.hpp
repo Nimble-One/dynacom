@@ -61,8 +61,8 @@ class DynaCoM {
   double inf_ = std::numeric_limits<double>::infinity();
 
   // Lists of contacts
-  // std::vector< std::shared_ptr<Contact6D> > known_contact6ds_;
-  std::map<std::string, std::shared_ptr<Contact6D>> known_contact6ds_;
+  // std::vector< std::shared_ptr<ContactBase> > known_contact6ds_;
+  std::map<std::string, std::shared_ptr<ContactBase>> known_contact6ds_;
   std::vector<std::string> active_contact6ds_;
 
   // QP Matrices
@@ -103,14 +103,14 @@ class DynaCoM {
   Eigen::Vector3d L_;
   Eigen::Vector2d n_;
   std::vector<std::string>::iterator activeID_;
-  std::map<std::string, std::shared_ptr<Contact6D>>::iterator knownID_;
+  std::map<std::string, std::shared_ptr<ContactBase>>::iterator knownID_;
 
   // for the CoP wrench
   pinocchio::SE3 oMso_, soMs_;
   Eigen::Matrix<double, 6, 6> Sz_, oXso_, soXs_;
 
-  void addSizes(const std::shared_ptr<Contact6D> &contact);
-  void removeSizes(const std::shared_ptr<Contact6D> &contact);
+  void addSizes(const std::shared_ptr<ContactBase> &contact);
+  void removeSizes(const std::shared_ptr<ContactBase> &contact);
   void resizeMatrices();
   void buildMatrices(const Eigen::Vector3d &groundCoMForce,
                      const Eigen::Vector3d &groundCoMTorque,
@@ -141,7 +141,7 @@ class DynaCoM {
 
   void computeNL(const double &w);
 
-  void addContact6d(const std::shared_ptr<Contact6D> &contact,
+  void addContact6d(const std::shared_ptr<ContactBase> &contact,
                     const std::string &name, const bool active = true);
   void removeContact6d(const std::string &name);
 
@@ -166,7 +166,7 @@ class DynaCoM {
   const std::vector<std::string> &getActiveContacts() {
     return active_contact6ds_;
   }
-  const std::shared_ptr<Contact6D> &getContact(std::string name) {
+  const std::shared_ptr<ContactBase> &getContact(std::string name) {
     return known_contact6ds_[name];
   }
   const DynaCoMSettings &getSettings() { return settings_; }
