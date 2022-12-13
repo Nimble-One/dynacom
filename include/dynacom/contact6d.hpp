@@ -18,6 +18,65 @@
 
 namespace dynacom {
 
+class BaseContact {
+ protected:
+  pinocchio::SE3 oMs_, cMo_;
+
+  // matrices
+  Eigen::MatrixXd unilaterality_A_;
+  Eigen::VectorXd unilaterality_b_;
+  Eigen::MatrixXd friction_A_;
+  Eigen::VectorXd friction_b_;
+  Eigen::VectorXd regularization_A_;
+  Eigen::VectorXd regularization_b_;
+  Eigen::Matrix<double, 6, -1> newton_euler_A_;
+
+  // 
+  Eigen::VectorXd contactForce_;
+  size_t frameID_;
+  
+ public:
+  BaseContact() {}
+  // virtual ~Contact() {}
+
+  // setters
+  virtual void setMu(const double &mu) = 0;
+
+  virtual void updateNewtonEuler(const Eigen::Vector3d &CoM, 
+                                 const pinocchio::SE3 &oMf) = 0;
+    
+  void setFrameID(const size_t frameID) { frameID_ = frameID; }
+  void applyForce(const Eigen::MatrixXd &force) {
+    contactForce_ << force;
+  }
+
+  // getters
+  virtual std::string &getFrameName() = 0;
+
+  const Eigen::Matrix<double, 6, 6> toWorldForces() {
+    return oMs_.toActionMatrixInverse().transpose();
+  }
+  const Eigen::Matrix<double, 6, 6> toCoMForces() {
+    return cMo_.act(oMs_).toActionMatrixInverse().transpose();
+  }
+
+  size_t uni_rows() const { return unilaterality_A_.rows(); }
+  size_t fri_rows() const { return friction_A_.rows(); }
+  size_t cols() const { return newton_euler_A_.cols(); }
+  size_t getFrameID() const { return frameID_; }
+
+  const Eigen::MatrixXd &uni_A() { return unilaterality_A_; }
+  const Eigen::VectorXd &uni_b() { return unilaterality_b_; }
+  const Eigen::MatrixXd &fri_A() { return friction_A_; }
+  const Eigen::VectorXd &fri_b() { return friction_b_; }
+  const Eigen::VectorXd &reg_A() { return regularization_A_; }
+  const Eigen::VectorXd &reg_b() { return regularization_b_; }
+  const Eigen::Matrix<double, 6, -1> &NE_A() { return newton_euler_A_; }
+
+  const Eigen::VectorXd &appliedForce() { return contactForce_; }
+
+};
+
 struct Contact6DSettings {
  public:
   double mu, gu;
@@ -107,6 +166,8 @@ class Contact6D {
   size_t fri_rows() const { return friction_A_.rows(); }
   size_t cols() const { return newton_euler_A_.cols(); }
   size_t getFrameID() const { return frameID_; }
+  std::string &getFrameName() { return settings_.frame_name; }
+
   const pinocchio::SE3 &getPose() const { return oMs_; }
 
   const Eigen::Matrix<double, 5, 6> &uni_A() { return unilaterality_A_; }
@@ -157,60 +218,24 @@ struct ContactPointSettings {
   bool operator!=(const ContactPointSettings &rhs) { return !(*this == rhs); }
 };
 
-class ContactPoint {
+class ContactPoint : public BaseContact {
  private:
   ContactPointSettings settings_;
-  pinocchio::SE3 oMs_, cMo_;
-
-  // matrices
-  Eigen::Matrix<double, 1, 3> unilaterality_A_;
-  Eigen::Matrix<double, 1, 1> unilaterality_b_;
-  Eigen::Matrix<double, 4, 3> friction_A_;
-  Eigen::Matrix<double, 4, 1> friction_b_;
-  Eigen::Matrix<double, 3, 1> regularization_A_;
-  Eigen::Matrix<double, 3, 1> regularization_b_;
-  Eigen::Matrix<double, 6, 3> newton_euler_A_;
-  size_t frameID_;
-  Eigen::Matrix<double, 3, 1> contactForce_;
 
  public:
   ContactPoint();
   ContactPoint(const ContactPointSettings &settings);
   void initialize(const ContactPointSettings &settings);
 
-  // ~ContactPoint();
-
   // setters
-  void setMu(const double &mu);
   void setForceWeights(const Eigen::Vector3d &force_weights);
-  void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3 &oMf);
-  void setFrameID(const size_t frameID) { frameID_ = frameID; }
-  void applyForce(const Eigen::Matrix<double, 3, 1> &force) {
-    contactForce_ << force;
-  }
+  void setMu(const double &mu);
+  void updateNewtonEuler(const Eigen::Vector3d &CoM, 
+                                 const pinocchio::SE3 &oMf);
 
   // getters
   const ContactPointSettings &getSettings() { return settings_; }
-  const Eigen::Matrix<double, 6, 3> toWorldForces() {
-    return oMs_.toActionMatrixInverse().transpose().block<6, 3>(0, 0);
-  }
-  const Eigen::Matrix<double, 6, 3> toCoMForces() {
-    return oMs_.act(cMo_).toActionMatrixInverse().transpose().block<6, 3>(0, 0);
-  }
-  size_t uni_rows() const { return unilaterality_A_.rows(); }
-  size_t fri_rows() const { return friction_A_.rows(); }
-  size_t cols() const { return newton_euler_A_.cols(); }
-  size_t getFrameID() const { return frameID_; }
-
-  const Eigen::Matrix<double, 1, 3> &uni_A() { return unilaterality_A_; }
-  const Eigen::Matrix<double, 1, 1> &uni_b() { return unilaterality_b_; }
-  const Eigen::Matrix<double, 4, 3> &fri_A() { return friction_A_; }
-  const Eigen::Matrix<double, 4, 1> &fri_b() { return friction_b_; }
-  const Eigen::Matrix<double, 3, 1> &reg_A() { return regularization_A_; }
-  const Eigen::Matrix<double, 3, 1> &reg_b() { return regularization_b_; }
-  const Eigen::Matrix<double, 6, 3> &NE_A() { return newton_euler_A_; }
-
-  const Eigen::Matrix<double, 3, 1> &appliedForce() { return contactForce_; }
+  std::string &getFrameName() { return settings_.frame_name; }
 };
 
 }  // namespace dynacom

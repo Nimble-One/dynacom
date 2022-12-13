@@ -97,7 +97,7 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
    * where previously defined.
    *
    * TODO: In the case when flatHorizontalGround = True, still, we could
-   * remove the assumption of horizontal ground by including the lateral force
+   * remove the assumption of "horizontal" ground by including the lateral force
    * produced by the lateral components of the groundNormalReaction.
    *
    * For this we should know what is the direction normal to the ground. Then,
@@ -164,7 +164,7 @@ void DynaCoM::computeNL(const double &w) {
 
 void DynaCoM::addContact6d(const std::shared_ptr<Contact6D> &contact,
                            const std::string &name, const bool active) {
-  contact->setFrameID(model_.getFrameId(contact->getSettings().frame_name));
+  contact->setFrameID(model_.getFrameId(contact->getFrameName()));
   contact->setPose(data_.oMf[contact->getFrameID()]);
 
   known_contact6ds_.insert(

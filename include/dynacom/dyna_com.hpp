@@ -21,10 +21,7 @@
 #include "dynacom/contact6d.hpp"
 // clang-format on
 
-// @TODO: add abstract class contact and new implementation of it contactPoint.
 // @TODO: implement method copy of contacts to be able to duplicate them easily.
-// @TODO: In the getters uni_A, fria_A, uni_b, fri_b return only the active
-// block.
 // @TODO: change internaly the system of names by ids.
 
 namespace dynacom {
