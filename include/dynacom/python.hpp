@@ -3,8 +3,10 @@
 
 namespace dynacom {
 namespace python {
+void exposeContactBase();
 void exposeContact6D();
 void exposeDynaCoM();
+void exposeContactPoint();
 }  // namespace python
 }  // namespace dynacom
 

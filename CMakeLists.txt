@@ -69,10 +69,13 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/dyna_com.hpp #
     include/${PROJECT_NAME}/python.hpp #
     include/${PROJECT_NAME}/contact6d.hpp #
+    include/${PROJECT_NAME}/contact_base.hpp #
+    include/${PROJECT_NAME}/contact_point.hpp #
 )
 set(${PROJECT_NAME}_SOURCES
     src/dyna_com.cpp #
     src/contac6d.cpp #
+    src/contact_point.cpp #
 )
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES}
                                    ${${PROJECT_NAME}_HEADERS})
@@ -91,6 +94,8 @@ endif()
 if(BUILD_PYTHON_INTERFACE)
   set(${PY_NAME}_SOURCES
     python/contact_6d.cpp
+    python/contact_base.cpp
+    python/contact_point.cpp
     python/dynacom_modules.cpp
     python/dyna_com.cpp
   )
