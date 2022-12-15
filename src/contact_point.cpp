@@ -53,7 +53,7 @@ void ContactPoint::setMu(const double &mu) {
   friction_A_.block<4, 1>(0, 2).setConstant(-mu);
 }
 
-void ContactPoint::setForceWeights(const Eigen::Vector3d &force_weights){
+void ContactPoint::setForceWeights(const Eigen::Vector3d &force_weights) {
   settings_.weights.head<3>() = force_weights;
   regularization_A_.head<3>() = force_weights;
 }
@@ -68,8 +68,8 @@ void ContactPoint::updateNewtonEuler(const Eigen::Vector3d &CoM,
   oMs_ = oMs;
   cMo_ = pinocchio::SE3(Eigen::Matrix3d::Identity(), -CoM);
 
-  newton_euler_A_ << (cMo_.act(oMs_)).toActionMatrixInverse().transpose().block<6, 3>(0, 0);
+  newton_euler_A_
+      << (cMo_.act(oMs_)).toActionMatrixInverse().transpose().block<6, 3>(0, 0);
 }
-
 
 }  // namespace dynacom

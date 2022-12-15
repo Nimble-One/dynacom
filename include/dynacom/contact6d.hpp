@@ -58,7 +58,7 @@ struct Contact6DSettings {
   }
 };
 
-class Contact6D : public ContactBase{
+class Contact6D : public ContactBase {
  private:
   Contact6DSettings settings_;
 
@@ -110,7 +110,8 @@ class Contact6D : public ContactBase{
 //     return test;
 //   }
 
-//   bool operator!=(const ContactPointSettings &rhs) { return !(*this == rhs); }
+//   bool operator!=(const ContactPointSettings &rhs) { return !(*this == rhs);
+//   }
 // };
 
 // class ContactPoint : public ContactBase {
@@ -125,7 +126,8 @@ class Contact6D : public ContactBase{
 //   // setters
 //   void setMu(const double &mu);
 //   void setForceWeights(const Eigen::Vector3d &force_weights);
-//   void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3 &oMf);
+//   void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3
+//   &oMf);
 
 //   // getters
 //   const ContactPointSettings &getSettings() { return settings_; }

@@ -31,7 +31,6 @@ Eigen::Matrix<double, 6, 1> get_weights(Contact6DSettings &self) {
 }
 
 void exposeContact6D() {
-
   bp::class_<Contact6DSettings>("Contact6DSettings")
       .def_readwrite("frame_name", &Contact6DSettings::frame_name)
       .def_readwrite("gu", &Contact6DSettings::gu)
@@ -43,7 +42,8 @@ void exposeContact6D() {
       .def("__eq__", &Contact6DSettings::operator==)
       .def("__ne__", &Contact6DSettings::operator!=);
 
-  bp::class_<Contact6D, bp::bases<ContactBase>, boost::noncopyable>("Contact6D", bp::init<>())
+  bp::class_<Contact6D, bp::bases<ContactBase>, boost::noncopyable>(
+      "Contact6D", bp::init<>())
       .def("initialize", &Contact6D::initialize, bp::args("self", "settings"))
       .def("get_settings", &get_settings, bp::args("self"))
       .def("set_mu", &Contact6D::setMu, bp::args("self", "mu"))

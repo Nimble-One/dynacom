@@ -7,5 +7,5 @@ from .dynacom import (
     DynaCoM,
     ContactBase,
     ContactPointSettings,
-    ContactPoint
+    ContactPoint,
 )  # noqa: F401

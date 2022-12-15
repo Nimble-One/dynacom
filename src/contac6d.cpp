@@ -5,7 +5,6 @@
  */
 
 #include "dynacom/contact6d.hpp"
-
 #include "pinocchio/algorithm/geometry.hpp"
 
 namespace dynacom {

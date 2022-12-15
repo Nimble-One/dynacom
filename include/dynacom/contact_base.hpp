@@ -32,22 +32,20 @@ class ContactBase {
   Eigen::VectorXd regularization_A_;
   Eigen::VectorXd regularization_b_;
   Eigen::Matrix<double, 6, -1> newton_euler_A_;
-  
+
  public:
-  //ContactBase() {}
-  // virtual ~Contact() {}
+  // ContactBase() {}
+  //  virtual ~Contact() {}
 
   // setters
   void setPose(pinocchio::SE3 &pose) { oMs_ = pose; }
   void setFrameID(const size_t frameID) { frameID_ = frameID; }
-  void applyForce(const Eigen::MatrixXd &force) {
-    contactForce_ << force;
-  }
+  void applyForce(const Eigen::MatrixXd &force) { contactForce_ << force; }
   void deactivate() { contactForce_.setZero(); }
 
-  virtual void updateNewtonEuler(const Eigen::Vector3d &CoM, 
+  virtual void updateNewtonEuler(const Eigen::Vector3d &CoM,
                                  const pinocchio::SE3 &oMf) = 0;
-    
+
   // getters
   const pinocchio::SE3 &getPose() const { return oMs_; }
   size_t getFrameID() const { return frameID_; }
@@ -74,7 +72,6 @@ class ContactBase {
   virtual std::string &getFrameName() = 0;
 };
 
-}
+}  // namespace dynacom
 
-
-#endif //// DYNACOM_CONTACT_BASE
+#endif  //// DYNACOM_CONTACT_BASE

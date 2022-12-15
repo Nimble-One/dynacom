@@ -1,8 +1,9 @@
+#include "dynacom/contact_point.hpp"
+
 #include <boost/python.hpp>
 #include <boost/python/return_internal_reference.hpp>
 #include <eigenpy/eigenpy.hpp>
 
-#include "dynacom/contact_point.hpp"
 #include "dynacom/python.hpp"
 
 namespace dynacom {
@@ -23,12 +24,9 @@ void set_weights(ContactPointSettings &self, Eigen::Vector3d w) {
   self.weights = w;
 }
 
-Eigen::Vector3d get_weights(ContactPointSettings &self) {
-  return self.weights;
-}
+Eigen::Vector3d get_weights(ContactPointSettings &self) { return self.weights; }
 
 void exposeContactPoint() {
-
   bp::class_<ContactPointSettings>("ContactPointSettings")
       .def_readwrite("frame_name", &ContactPointSettings::frame_name)
       .def_readwrite("mu", &ContactPointSettings::mu)
@@ -37,8 +35,10 @@ void exposeContactPoint() {
       .def("__eq__", &ContactPointSettings::operator==)
       .def("__ne__", &ContactPointSettings::operator!=);
 
-  bp::class_<ContactPoint, bp::bases<ContactBase>, boost::noncopyable>("ContactPoint", bp::init<>())
-      .def("initialize", &ContactPoint::initialize, bp::args("self", "settings"))
+  bp::class_<ContactPoint, bp::bases<ContactBase>, boost::noncopyable>(
+      "ContactPoint", bp::init<>())
+      .def("initialize", &ContactPoint::initialize,
+           bp::args("self", "settings"))
       .def("get_settings", &get_settings, bp::args("self"))
       .def("set_mu", &ContactPoint::setMu, bp::args("self", "mu"))
       .def("set_force_weights", &ContactPoint::setForceWeights,

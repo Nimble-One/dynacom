@@ -19,7 +19,6 @@
 
 namespace dynacom {
 
-
 struct ContactPointSettings {
  public:
   double mu;
