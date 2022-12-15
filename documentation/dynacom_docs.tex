@@ -7,7 +7,7 @@
 \hypersetup{
 	colorlinks=true,
 	linkcolor=[rgb]{0.015, 0.59, 0.77},
-	citecolor=[rgb]{0.78, 0.03, 0},
+	citecolor=[rgb]{0.78, 0.03, 0},  
 	urlcolor=[rgb]{1, 0.612, 0.03}
 }
 
@@ -21,6 +21,11 @@
 \usepackage{bm}
 \usepackage{color, colortbl}
 \usepackage{imakeidx}
+\usepackage{bold-extra}
+\usepackage[dvipsnames]{xcolor}
+
+\newcommand{\code}[2][Blue]{\textcolor{#1}{\texttt{#2}}}
+\newcommand{\codebf}[2][Blue]{\textcolor{#1}{\texttt{\textbf{#2}}}}
 
 \makeindex
 
@@ -37,27 +42,137 @@
 \clearpage
 \newpage
 
-\section{The Contact Class}
+\section{The Contact Classes}
+
+The contact classes are based on the virtual class \code{ContactBase} and can be instantiated under the form of a \code{ContactPoint} which interacts with the environment by a $3$D force, or a \code{Contact6D} that can produce a full $6$D wrench.
+
+The contacts contain information about the feasibility of forces that they can produce and the relative prioritization of the magnitude of such forces.
+
+    In c++ it can be included as 
+    %
+    \begin{align*}
+    &\code{\#include <dynacom/contact\_base.hpp>}\\
+    &\code{\#include <dynacom/contact\_point.hpp>}\\
+    &\code{\#include <dynacom/contact6d.hpp>}
+    \end{align*}
+    %
+    and in python imported it as
+    %
+    \begin{equation*}
+    \codebf{from }\code{dynacom }\codebf{import }\code{ContactBase, ContactPoint, Contact6D}
+    \end{equation*}
 
 \subsection{Instantiation}
 \hrulefill
 
+{\bf Functions:}
+    %
+    \begin{align*}
+        &\code{ContactPoint::ContactPoint()}\\
+        &\code{ContactPoint::initialize()}\\
+        &\code{Contact6D::Contact6D()}\\
+        &\code{Contact6D::initialize()}
+    \end{align*}
+
+
+Instantiating a \code{ContactPoint} and \code{Contact6D} require the following structs of settings respectively:
+%
+\begin{align*}
+    \codebf{ContactPointSettings}&\code{.mu} &&\code{|\quad double} \\
+         &\code{.weights} &&\code{|\quad Eigen::Vector3d} \\
+         &\code{.frame\_name} &&\code{|\quad std::string} \\
+         \\
+    \codebf{Contact6DSettings}&\code{.mu} &&\code{|\quad double} \\
+    &\code{.gu} &&\code{|\quad double} \\
+    &\code{.half\_length} && \code{|\quad double} \\
+    &\code{.half\_width} && \code{|\quad double} \\
+         &\code{.weights} &&\code{|\quad Eigen::Vector6d} \\
+         &\code{.frame\_name} &&\code{|\quad std::string} 
+\end{align*}
+%,
+which can be used as an input in the constructor, or afterwards in the function \code{initialize()}.
 
 
 \clearpage
 
-\subsection{Modifying Parameters}
+\subsection{Modifying Contact Settings}
 \hrulefill
 
+{\bf Functions:}
+    %
+    \begin{align*}
+        &\code{ContactPoint::setMu()}\\
+        &\code{ContactPoint::setForceWeights()}\\
+        &\code{Contact6D::setMu()}\\
+        &\code{Contact6D::setGu()}\\
+        &\code{Contact6D::setForceWeights()}\\
+        &\code{Contact6D::setTorqueWeights()}\\
+        &\code{Contact6D::setSurfaceHalfWidth()}\\
+        &\code{Contact6D::setSurfaceHalfLength()}\\
+    \end{align*}
+
+
+Most of the contact settings can be modified after the initialization by using the specific setters.
 
 
 \clearpage
 
-\subsection{Wrench Matrices}
+\subsection{Contact Matrices}
 \hrulefill
 
+{\bf Functions:}
+    %
+    \begin{align*}
+        &\code{ContactBase::uni\_A()}\qquad|\qquad
+        \code{ContactBase::uni\_b()}\\
+        &\code{ContactBase::fri\_A()}\qquad|\qquad
+        \code{ContactBase::fri\_b()}\\
+        &\code{ContactBase::reg\_A()}\qquad|\qquad
+        \code{ContactBase::reg\_b()}\\
+        &\code{ContactBase::ne\_A()}\\
+    \end{align*}
 
+Each contact contains the matrices related to its own feasibility and prioritization. Such matrices are attributes of the \code{ContactBase} and adopt different forms according to the specific kind of contact used, either \code{ContactPoint} or \code{Contact6D}.
 
+All the matrices \code{\_b} are currently set to zero, and in both cases \code{reg\_A} is a vector containing the $3$ or $6$ weights accordingly. 
+
+In the \codebf{ContactPoint} the unilaterality and friction cone matrices are:
+%
+\begin{align*}
+    &\code{uni\_A} = \begin{bmatrix}
+       ~0        & ~0     & \texttt{-}1 
+    \end{bmatrix}, &&
+    \code{fri\_A} = \begin{bmatrix}
+        ~1 & ~0 & \texttt{-}\mu ~  \\
+        ~0 & ~1 & \texttt{-}\mu ~  \\
+        \texttt{-}1 & ~0 & \texttt{-}\mu~ \\
+        ~0 & \texttt{-}1 & \texttt{-}\mu~ \\
+    \end{bmatrix}.
+\end{align*}
+%
+And the \code{ne\_A} are the three first rows of the adjoint matrix transforming the force from the local contact frame to the frame of the CoM. 
+
+In the \codebf{Contact6D}, the unilaterality and friction cone matrices are:
+%
+\begin{align*}
+    &\code{uni\_A} = \begin{bmatrix}
+       ~0        & ~0     & \texttt{-}1   & ~0 & ~0  & ~0~ \\
+               &        & \texttt{-}d_x & ~0 & \texttt{-}1 &  \\
+       \vspace{2mm}\vdots  & \vdots & \texttt{-}d_y & ~1 & ~0 & \vdots \\
+               &         & \texttt{-}d_x & ~0 & ~1 &   \\
+       ~0        &   ~0    & \texttt{-}d_y & \texttt{-}1 & ~0 & ~0~ \\
+    \end{bmatrix}, &&
+    \code{fri\_A} = \begin{bmatrix}
+        ~1 & ~0 & \texttt{-}\mu & ~0   & ~0  & ~0~ \\
+        ~0 & ~1 & \texttt{-}\mu &     &    &  \vdots \\
+        \texttt{-}1 & ~0 & \texttt{-}\mu & \vspace{2mm}\vdots   & \vdots   &    \\
+        ~0 & \texttt{-}1 & \texttt{-}\mu &    &    & ~0~ \\
+        ~0 & ~0 & \texttt{-}\gamma &  &    & ~1~ \\
+        ~0 & ~0 & \texttt{-}\gamma &  ~0 &  ~0  & \texttt{-}1~ 
+    \end{bmatrix}.
+\end{align*}
+ %
+ And \code{ne\_A} is the adjoint matrix transforming the wrench from the local contact frame to the frame of the CoM. 
 
 \clearpage
 
@@ -65,16 +180,16 @@
 
     This class is in charged to compute the centroidal wrench required to perform certain motion of the robot and to distribute such wrench optimally among the active contacts of the robot.
 
-    In c++ it can be included as
+    In c++ it can be included as 
     %
     \begin{equation*}
-    \texttt{\#include <dynacom/dyna\_com.hpp>}
+    \code{\#include <dynacom/dyna\_com.hpp>}
     \end{equation*}
     %
     and in python import it as
     %
     \begin{equation*}
-    \texttt{\texttt{from dynacom import DynaCoM}}
+    \codebf{from }\code{dynacom }\codebf{import }\code{DynaCoM}
     \end{equation*}
 
 \subsection{Instantiation}
@@ -83,14 +198,14 @@
     {\bf Functions:}
     %
     \begin{align*}
-        &\texttt{DynaCoM::DynaCoM()}\\
-        &\texttt{DynaCoM::initialize()}
+        &\code{DynaCoM::DynaCoM()}\\
+        &\code{DynaCoM::initialize()}
     \end{align*}
 
-    The instantiation of the \texttt{DynaCoM class} requires a \texttt{struct} called \texttt{DynaCoMSettings} containing the address of the \texttt{URDF} file that describes the model of the robot.
+    The instantiation of the \code{DynaCoM class} requires a \code{struct} called \code{DynaCoMSettings} containing the address of the \code{URDF} file that describes the model of the robot.
 
-    We can instantiate the \texttt{DynaCoM} using the \texttt{DynaCoMSettings} as a parameter or by default without parameters, it incorporates the settings later with the method \texttt{initialize()}.
-
+    We can instantiate the \code{DynaCoM} using the \code{DynaCoMSettings} as a parameter or by default without parameters, it incorporates the settings later with the method \code{initialize()}.
+    
 % \begin{wrapfigure}{r}{0.50\textwidth} %this figure will be at the right
 %     \centering
 %     \includegraphics[width=0.50\textwidth]{images/Add_users.png}
@@ -115,7 +230,7 @@
 {\bf Function:}
 %
 \begin{equation*}
-    \texttt{DynaCoM::computeDynamics()}
+    \code{DynaCoM::computeDynamics()}
 \end{equation*}
 
 This computation is based on the Newton and Euler equations:
@@ -125,51 +240,51 @@ This computation is based on the Newton and Euler equations:
     \sum_k r_k\times f_k &= \dot{L} -\tau_e,
 \end{align}
 %
-where the robot weight $m g$ is obtained from the \texttt{pinnochio::model}, the known or expected external wrench $f_e$, $\tau_e$ (not supporting wrench, in CoM frame) are provided by the user and the variation of the linear $m\ddot{c}$ and angular $\dot{L}$ momentum are obtained from the function
+where the robot weight $m g$ is obtained from the \code{pinnochio::model}, the known or expected external wrench $f_e$, $\tau_e$ (not supporting wrench, in CoM frame) are provided by the user and the variation of the linear $m\ddot{c}$ and angular $\dot{L}$ momentum are obtained from the function 
 %
 \begin{equation*}
-    \texttt{pinocchio::computeCentroidalMomentumTimeVariation}(q, \dot{q}, \ddot{q}),
+    \code{pinocchio::computeCentroidalMomentumTimeVariation}(q, \dot{q}, \ddot{q}),
 \end{equation*}
 %
-based on the inputs \texttt{position} ($q$), \texttt{velocity} ($\dot{q}$) and \texttt{acceleration} ($\ddot{q}$).
+based on the inputs \code{position} ($q$), \code{velocity} ($\dot{q}$) and \code{acceleration} ($\ddot{q}$).
 
 The supporting wrench $\sum_k f_k$ and $\sum_k r_k\times f_k$, expressed in the frame of the CoM, can be accessed by the getter methods:
 
 \begin{align}
-    \sum_k f_k &=\texttt{getGroundCoMForce()}; \\
-    \sum_k r_k\times f_k &= \texttt{getGroundCoMTorque()};
+    \sum_k f_k &=\code{getGroundCoMForce()}; \\
+    \sum_k r_k\times f_k &= \code{getGroundCoMTorque()};
 \end{align}
 
 \subsubsection{Computing the Center of Pressure}
 
-We compute the Center of Pressure (CoP) assuming that the ground is flat and horizontal (\texttt{flatHorizontalGround $=$ true}) or without assumptions (\texttt{flatHorizontalGround $=$ false}). In all cases, the CoP is always computed on a plane $^{x,y}$ perpendicular to the gravity.
+We compute the Center of Pressure (CoP) assuming that the ground is flat and horizontal (\code{flatHorizontalGround $=$ true}) or without assumptions (\code{flatHorizontalGround $=$ false}). In all cases, the CoP is always computed on a plane $^{x,y}$ perpendicular to the gravity.
 
 \begin{itemize}
-    \item[]\hspace*{-10mm}{\bf case \texttt{flatHorizontalGround $=$ {\bf \color{blue}true}}:} In this case the CoP $p$ in $x$ and $y$ coordinates can be computed directly from the centroidal wrench:
+    \item[]\hspace*{-10mm}{\bf case \code{flatHorizontalGround $=$ \codebf[blue]{true}}:} In this case the CoP $p$ in $x$ and $y$ coordinates can be computed directly from the centroidal wrench:
     %
     \begin{equation}
-        p^{x,y} = c^{x,y} + \dfrac{\left( S (\sum_k r_k\times f_k)^{x, y} - (\sum_k f_k)^{x,y}CoM^{z} \right)}{(\sum_k f_k)^z}
+        p^{x,y} = c^{x,y} + \dfrac{\left( S (\sum_k r_k\times f_k)^{x, y} - (\sum_k f_k)^{x,y}CoM^{z} \right)}{(\sum_k f_k)^z} 
     \end{equation}
-    where $ S=\big[\begin{smallmatrix}\,0\, & \texttt{-}1\\1\, &0
+    where $ S=\big[\begin{smallmatrix}\,0\, & \code{-}1\\1\, &0
 \end{smallmatrix}\big]$ is a $\frac{\pi}{2}$ rotation matrix.
 
-    \item[]\hspace*{-10mm}{\bf case \texttt{flatHorizontalGround $=$ {\bf \color{red}false}}:} Without assumptions, we need to specify where are the robot supports as contact placements, and we must distribute the centroidal wrench among the contacts ({\it learn more about the force distribution in the section \ref{Sec.ForceDist}}).
+    \item[]\hspace*{-10mm}{\bf case \code{flatHorizontalGround $=$ {\bf \code[red]{false}}}:} Without assumptions, we need to specify where are the robot supports as contact placements, and we must distribute the centroidal wrench among the contacts ({\it learn more about the force distribution in the section \ref{Sec.ForceDist}}).
     %
     \begin{equation}
         p^{x,y} = \dfrac{S\, (\sum_k {\tau^o_k})^{x,y}}{(\sum_k f_k)^z},
     \end{equation}
     %
     where $\tau^o_k$ is the world frame torque produced by the $k$-th contact.
-
+    
 \end{itemize}
 
-In a future release, we plan to remove the assumption of Horizontal ground, by replacing the flag \texttt{flatHorizontalGround} by \texttt{flatGround}. Such computation would require additionally a vector normal to the ground plane.
+In a future release, we plan to remove the assumption of Horizontal ground, by replacing the flag \code{flatHorizontalGround} by \code{flatGround}. Such computation would require additionally a vector normal to the ground plane.
 
 \subsubsection{Computing the non-linearity}
 
 {\bf Function:}
 \begin{equation*}
-    \texttt{DynaCoM::computeNL()}
+    \code{DynaCoM::computeNL()}
 \end{equation*}
 
 Once the CoP is computed, we can obtain the ``non-linearity'' $n$, defined as the difference between the CoP and the Virtual Repellent Point VRP $v$ defined as the base of an equivalent Linear Inverted Pendulum (LIP) with the same CoM motion shown by the robot. This requires the time constant of the LIP $ \omega $.
@@ -185,51 +300,51 @@ Once the CoP is computed, we can obtain the ``non-linearity'' $n$, defined as th
 \subsection{Computation of Contact Forces}
 \hrulefill
 
-The \texttt{Contact class} is described in the next section. Here we focus on how the \texttt{DynaCoM} deals with the contacts.
+The \code{Contact class} is described in the next section. Here we focus on how the \code{DynaCoM} deals with the contacts.
 
 \subsubsection{Contact Management}
 
 {\bf Functions:}
 \begin{align*}
-    &\texttt{DynaCoM::addContact6d()}\\
-    &\texttt{DynaCoM::removeContact6d()}\\
-    &\texttt{DynaCoM::activateContact6d()}\\
-    &\texttt{DynaCoM::deactivateContact6d()}.
+    &\code{DynaCoM::addContact6d()}\\
+    &\code{DynaCoM::removeContact6d()}\\
+    &\code{DynaCoM::activateContact6d()}\\
+    &\code{DynaCoM::deactivateContact6d()}.
 \end{align*}
 
-The \texttt{DynaCoM} gathers all the known contacts in a map, called \texttt{known\_contacts}, relating the assigned name of each contact with a \texttt{shared\_ptr} to the contact. Moreover, it has a \texttt{vector<string>} with the names of all active contacts.
+The \code{DynaCoM} gathers all the known contacts in a map, called \code{known\_contacts}, relating the assigned name of each contact with a \code{shared\_ptr} to the contact. Moreover, it has a \code{vector<string>} with the names of all active contacts. 
 
-Contacts are incorporated or removed from the \texttt{known\_contacts} with the methods \texttt{DynaCoM::addContact6d()} and \texttt{DynaCoM::removeContact6d()}. When a contact is added to the map of known contacts, the frame where it is defined is associated to one of the model frames according to its name.
+Contacts are incorporated or removed from the \code{known\_contacts} with the methods \code{DynaCoM::addContact6d()} and \code{DynaCoM::removeContact6d()}. When a contact is added to the map of known contacts, the frame where it is defined is associated to one of the model frames according to its name.
 
-Moreover, the known contacts can be activated or deactivated with the methods \texttt{DynaCoM::activateContact6d()} and \texttt{DynaCoM::deactivateContact6d()}.
+Moreover, the known contacts can be activated or deactivated with the methods \code{DynaCoM::activateContact6d()} and \code{DynaCoM::deactivateContact6d()}.
 
 \subsubsection{Force Distribution} \label{Sec.ForceDist}
 
 {\bf Function:}
 \begin{equation*}
-    \texttt{DynaCoM::distributeForce()}.
+    \code{DynaCoM::distributeForce()}.
 \end{equation*}
 
 One given centroidal wrench can be reproduced by infinite combinations of contact wrenches when we consider several contact surfaces. We manage this redundancy by a numerical optimization based on Quadratic Programming (QP).
 
-In this optimization problem, we make sure that the combined action of all contact forces reproduces our {\bf desired centroidal wrench} \texttt{cWrench}, while maintaining the forces of each contact {\bf unilateral}, within its corresponding {\bf friction cone}. On each contact, we choose the wrench with the {\bf minimum force and torque} components according to user provided weights.
+In this optimization problem, we make sure that the combined action of all contact forces reproduces our {\bf desired centroidal wrench} \code{cWrench}, while maintaining the forces of each contact {\bf unilateral}, within its corresponding {\bf friction cone}. On each contact, we choose the wrench with the {\bf minimum force and torque} components according to user provided weights.
 
 The optimization problem can be written as follows:
 %
 \begin{align}
-    \underset{\bm{\lambda}}{\bm{\mathrm{minimum}}} &\qquad \texttt{Regularization}\\
-    \bm{\mathrm{subject\;to}} &\qquad   \texttt{Unilaterality},      \nonumber\\
-                  &\qquad  \texttt{FrictionCone},     \nonumber\\
-                  & \qquad \texttt{NewtonEuler}, \nonumber
+    \underset{\bm{\lambda}}{\bm{\mathrm{minimum}}} &\qquad \code{Regularization}\\
+    \bm{\mathrm{subject\;to}} &\qquad   \code{Unilaterality},      \nonumber\\
+                  &\qquad  \code{FrictionCone},     \nonumber\\
+                  & \qquad \code{NewtonEuler}, \nonumber
 \end{align}
 %
-where
+where 
 %
 \begin{align}
-    &\texttt{Regularization}& &\hspace{-20mm}\!\!\!=  \qquad\bm{\lambda}^T \,Q \,\bm{\lambda}, \\
-    &\texttt{Unilaterality}& &\hspace{-20mm}\texttt{:}\qquad U\,\bm{\lambda} \,<\, 0, \\
-    &\texttt{FrictionCone}& &\hspace{-20mm}\texttt{:}\qquad C\,\bm{\lambda} \,<\, 0, \\
-    &\texttt{NewtonEuler} & &\hspace{-20mm}\texttt{:}\qquad \mathit{NE} \,\bm{\lambda} \,=\, \texttt{cWrech},
+    &\code{Regularization}& &\hspace{-20mm}\!\!\!=  \qquad\bm{\lambda}^T \,Q \,\bm{\lambda}, \\
+    &\code{Unilaterality}& &\hspace{-20mm}\code{:}\qquad U\,\bm{\lambda} \,<\, 0, \\
+    &\code{FrictionCone}& &\hspace{-20mm}\code{:}\qquad C\,\bm{\lambda} \,<\, 0, \\
+    &\code{NewtonEuler} & &\hspace{-20mm}\code{:}\qquad \mathit{NE} \,\bm{\lambda} \,=\, \code{cWrech},
 \end{align}
 %
 the optimization variable $\bm{\lambda}$ is a concatenation of all active contact wrenches expressed locally on each contact frame, and the matrices $Q$, $U$, $C$ and $\mathit{NE}$ are concatenations of all active contact matrices:
@@ -249,7 +364,7 @@ the optimization variable $\bm{\lambda}$ is a concatenation of all active contac
          & C_2 & \\
          & & \ddots
     \end{bmatrix}, & \mathit{NE} = \begin{bmatrix}
-        \mathit{NE}_1 & \mathit{NE}_2 & \cdots
+        \mathit{NE}_1 & \mathit{NE}_2 & \cdots 
     \end{bmatrix}.
 \end{align}
 %
