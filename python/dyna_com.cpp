@@ -69,8 +69,8 @@ void exposeDynaCoM() {
       .def("fri_b", &DynaCoM::fri_b, bp::args("self"))
       .def("reg_A", &DynaCoM::reg_A, bp::args("self"))
       .def("reg_b", &DynaCoM::reg_b, bp::args("self"))
-      .def("NE_A", &DynaCoM::NE_A, bp::args("self"))
-      .def("NE_b", &DynaCoM::NE_b,
+      .def("ne_A", &DynaCoM::ne_A, bp::args("self"))
+      .def("ne_b", &DynaCoM::ne_b,
            bp::return_value_policy<bp::reference_existing_object>(),
            bp::args("self"))
       .def("allForces", &DynaCoM::allForces,

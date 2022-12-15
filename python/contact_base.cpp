@@ -60,7 +60,7 @@ void exposeContactBase() {
       .def("reg_b", &ContactBase::reg_b,
            bp::return_value_policy<bp::reference_existing_object>(),
            bp::args("self"))
-      .def("NE_A", &ContactBase::NE_A,
+      .def("ne_A", &ContactBase::ne_A,
            bp::return_value_policy<bp::reference_existing_object>(),
            bp::args("self"))
       // .def("toWorldForces", &ContactBase::toWorldForces, bp::args("self"))

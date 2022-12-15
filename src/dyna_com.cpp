@@ -268,7 +268,7 @@ void DynaCoM::buildMatrices(const Eigen::Vector3d &groundCoMForce,
 
     contact->updateNewtonEuler(CoM, pinocchio::updateFramePlacement(
                                         model_, data_, contact->getFrameID()));
-    newton_euler_A_.block(0, j_, 6, cols) << contact->NE_A();
+    newton_euler_A_.block(0, j_, 6, cols) << contact->ne_A();
 
     uni_i_ += uni_r;
     fri_i_ += fri_r;

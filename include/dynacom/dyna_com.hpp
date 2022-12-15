@@ -181,10 +181,10 @@ class DynaCoM {
   const Eigen::VectorXd fri_b() { return friction_b_.segment(0, j_); }
   const Eigen::VectorXd reg_A() { return regularization_A_.segment(0, j_); }
   const Eigen::VectorXd reg_b() { return regularization_b_.segment(0, j_); }
-  const Eigen::Matrix<double, 6, -1> NE_A() {
+  const Eigen::Matrix<double, 6, -1> ne_A() {
     return newton_euler_A_.block(0, 0, 6, j_);
   }
-  const Eigen::Matrix<double, 6, 1> &NE_b() { return newton_euler_b_; }
+  const Eigen::Matrix<double, 6, 1> &ne_b() { return newton_euler_b_; }
   const Eigen::VectorXd &allForces() { return F_; }
 };
 

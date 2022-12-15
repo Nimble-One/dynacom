@@ -60,7 +60,7 @@ class ContactBase {
   const Eigen::VectorXd &fri_b() { return friction_b_; }
   const Eigen::VectorXd &reg_A() { return regularization_A_; }
   const Eigen::VectorXd &reg_b() { return regularization_b_; }
-  const Eigen::Matrix<double, 6, -1> &NE_A() { return newton_euler_A_; }
+  const Eigen::Matrix<double, 6, -1> &ne_A() { return newton_euler_A_; }
 
   const Eigen::Matrix<double, 6, 6> toWorldForces() {
     return oMs_.toActionMatrixInverse().transpose();
