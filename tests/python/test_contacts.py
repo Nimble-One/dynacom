@@ -19,7 +19,7 @@ from correct_values import correct_left_z_force, correct_right_z_force
 
 unittest.util._MAX_LENGTH = 2000
 
-debug = False
+debug = True
 visualize = False
 
 
@@ -145,7 +145,7 @@ class TestDynaCoM(unittest.TestCase):
         self.dyn.deactivateContact6d("right_sole")
         pin.updateFramePlacements(self.dyn.model(), self.dyn.data())
         data = self.dyn.data()
-        oMs = data.oMf[self.dyn.getContact("left_sole").get_frame_id()]
+        oMs = data.oMf[self.dyn.getContact("left_sole").getFrameID()]
         com = oMs.translation + np.array([0, -0.2, 1])
 
         cMo = pin.SE3(np.eye(3), -com)
@@ -184,8 +184,8 @@ class TestDynaCoM(unittest.TestCase):
 
     def test_dynamic_distribution(self):
 
-        LF = self.dyn.getContact("left_sole").get_pose()
-        RF = self.dyn.getContact("right_sole").get_pose()
+        LF = self.dyn.getContact("left_sole").getPose()
+        RF = self.dyn.getContact("right_sole").getPose()
         N_cycles = 5
         N = 500
         Dt = 0.01

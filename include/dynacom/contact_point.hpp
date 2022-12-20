@@ -7,8 +7,8 @@
  * @brief Class to perform inverse geometry on a biped robot.
  */
 
-#ifndef DYNACOM_CONTACT_6D
-#define DYNACOM_CONTACT_6D
+#ifndef DYNACOM_CONTACT_POINT
+#define DYNACOM_CONTACT_POINT
 
 // clang-format off
 #include <Eigen/Dense>
@@ -19,11 +19,10 @@
 
 namespace dynacom {
 
-struct Contact6DSettings {
+struct ContactPointSettings {
  public:
-  double mu, gu;
-  double half_length, half_width;
-  Eigen::Matrix<double, 6, 1> weights;
+  double mu;
+  Eigen::Matrix<double, 3, 1> weights;
   std::string frame_name;
 
   std::string to_string() {
@@ -31,10 +30,7 @@ struct Contact6DSettings {
     out << "Contact6D "
         << ":\n";
     out << "    mu: " << this->mu << "\n";
-    out << "    gu: " << this->gu << "\n";
-    out << "    weights: " << this->weights.transpose() << "\n";
-    out << "    Surface half_length: " << this->half_length << "\n";
-    out << "    Surface half_width: " << this->half_width << std::endl;
+    out << "    weights: " << this->weights.transpose() << std::endl;
 
     return out.str();
   }
@@ -44,43 +40,36 @@ struct Contact6DSettings {
     return out;
   }
 
-  bool operator!=(const Contact6DSettings &rhs) { return !(*this == rhs); }
-
-  bool operator==(const Contact6DSettings &rhs) {
+  bool operator==(const ContactPointSettings &rhs) {
     bool test = true;
     test &= this->frame_name == rhs.frame_name;
     test &= this->mu == rhs.mu;
-    test &= this->gu == rhs.gu;
-    test &= this->half_length == rhs.half_length;
-    test &= this->half_width == rhs.half_width;
     test &= this->weights == rhs.weights;
     return test;
   }
+
+  bool operator!=(const ContactPointSettings &rhs) { return !(*this == rhs); }
 };
 
-class Contact6D : public ContactBase {
+class ContactPoint : public ContactBase {
  private:
-  Contact6DSettings settings_;
+  ContactPointSettings settings_;
 
  public:
-  Contact6D();
-  Contact6D(const Contact6DSettings &settings);
-  void initialize(const Contact6DSettings &settings);
+  ContactPoint();
+  ContactPoint(const ContactPointSettings &settings);
+  void initialize(const ContactPointSettings &settings);
 
   // setters
   void setMu(const double &mu);
-  void setGu(const double &gu);
   void setForceWeights(const Eigen::Vector3d &force_weights);
-  void setTorqueWeights(const Eigen::Vector3d &torque_weights);
-  void setSurfaceHalfWidth(const double &half_width);
-  void setSurfaceHalfLength(const double &half_length);
   void updateNewtonEuler(const Eigen::Vector3d &CoM, const pinocchio::SE3 &oMf);
 
   // getters
-  const Contact6DSettings &getSettings() { return settings_; }
+  const ContactPointSettings &getSettings() { return settings_; }
   std::string &getFrameName() { return settings_.frame_name; }
 };
 
 }  // namespace dynacom
 
-#endif  // DYNACOM_CONTACT_6D
+#endif  // DYNACOM_CONTACT_POINT

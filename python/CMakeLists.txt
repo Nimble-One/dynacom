@@ -1,4 +1,6 @@
-set(${PY_NAME}_SOURCES contact_6d.cpp dynacom_modules.cpp dyna_com.cpp)
+set(${PY_NAME}_SOURCES contact_6d.cpp contact_base.cpp contact_point.cpp
+                       dyna_com.cpp dynacom_modules.cpp)
+
 add_library(${PY_NAME}_py SHARED ${${PY_NAME}_SOURCES})
 target_link_libraries(${PY_NAME}_py PUBLIC ${PROJECT_NAME} eigenpy::eigenpy)
 set_target_properties(

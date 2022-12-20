@@ -5,4 +5,7 @@ from .dynacom import (
     Contact6DSettings,
     DynaCoMSettings,
     DynaCoM,
+    ContactBase,
+    ContactPointSettings,
+    ContactPoint,
 )  # noqa: F401

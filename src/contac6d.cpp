@@ -20,29 +20,39 @@ void Contact6D::initialize(const Contact6DSettings &settings) {
   double mu = settings_.mu;
   double gu = settings_.gu;
 
+  // SIZES
+  contactForce_.resize(6);
+  regularization_A_.resize(6);
+  regularization_b_.resize(6);
+  unilaterality_A_.resize(5, 6);
+  unilaterality_b_.resize(5);
+  friction_A_.resize(6, 6);
+  friction_b_.resize(6);
+  newton_euler_A_.resize(6, 6);
+
   // Make matrices
   regularization_A_ << settings_.weights;
-  regularization_b_ << Eigen::Matrix<double, 6, 1>::Zero();
+  regularization_b_.setZero();
 
-  unilaterality_A_ << Eigen::Matrix<double, 5, 6>::Zero();
+  unilaterality_A_.setZero();
   unilaterality_A_.block<5, 1>(0, 2) << -1, -hl, -hw, -hl, -hw;
   unilaterality_A_.block<2, 2>(1, 3) << 0, -1, 1, 0;
   unilaterality_A_.block<2, 2>(3, 3) << 0, 1, -1, 0;
-  unilaterality_b_ << Eigen::Matrix<double, 5, 1>::Zero();
+  unilaterality_b_.setZero();
 
-  friction_A_ << Eigen::Matrix<double, 6, 6>::Zero();
+  friction_A_.setZero();
   friction_A_.block<6, 1>(0, 2) << -mu, -mu, -mu, -mu, -gu, -gu;
   friction_A_.block<2, 2>(0, 0) << Eigen::Matrix2d::Identity();
   friction_A_.block<2, 2>(2, 0) << -Eigen::Matrix2d::Identity();
   friction_A_.block<2, 1>(4, 5) << 1, -1;
-  friction_b_ << Eigen::Matrix<double, 6, 1>::Zero();
+  friction_b_.setZero();
 
-  newton_euler_A_ << Eigen::Matrix<double, 6, 6>::Zero();
+  newton_euler_A_.setZero();
   newton_euler_A_.block<3, 3>(0, 0) << Eigen::Matrix3d::Identity();
   newton_euler_A_.block<3, 3>(3, 3) << Eigen::Matrix3d::Identity();
-
   // Note: newton_euler must be updated before using it
-  contactForce_ = Eigen::Matrix<double, 6, 1>::Zero();
+
+  contactForce_.setZero();
 }
 
 void Contact6D::setForceWeights(const Eigen::Vector3d &force_weights) {
@@ -89,4 +99,5 @@ void Contact6D::updateNewtonEuler(const Eigen::Vector3d &CoM,
 
   newton_euler_A_ << (cMo_.act(oMs_)).toActionMatrixInverse().transpose();
 }
+
 }  // namespace dynacom

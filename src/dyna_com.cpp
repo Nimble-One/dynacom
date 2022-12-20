@@ -96,7 +96,7 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
    * where previously defined.
    *
    * TODO: In the case when flatHorizontalGround = True, still, we could
-   * remove the assumption of horizontal ground by including the lateral force
+   * remove the assumption of "horizontal" ground by including the lateral force
    * produced by the lateral components of the groundNormalReaction.
    *
    * For this we should know what is the direction normal to the ground. Then,
@@ -131,7 +131,7 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
 
     CoPTorque_ = Eigen::Vector3d::Zero();
     for (std::string name : active_contact6ds_) {
-      std::shared_ptr<Contact6D> &contact = known_contact6ds_[name];
+      std::shared_ptr<ContactBase> &contact = known_contact6ds_[name];
       CoPTorque_ +=
           (toWorldCoPWrench(contact->getPose()) * contact->appliedForce())
               .segment<3>(3);
@@ -161,13 +161,13 @@ void DynaCoM::computeNL(const double &w) {
 // Contact management
 // //////////////////////////////////////////////////////////////////
 
-void DynaCoM::addContact6d(const std::shared_ptr<Contact6D> &contact,
+void DynaCoM::addContact6d(const std::shared_ptr<ContactBase> &contact,
                            const std::string &name, const bool active) {
-  contact->setFrameID(model_.getFrameId(contact->getSettings().frame_name));
+  contact->setFrameID(model_.getFrameId(contact->getFrameName()));
   contact->setPose(data_.oMf[contact->getFrameID()]);
 
   known_contact6ds_.insert(
-      std::pair<std::string, std::shared_ptr<Contact6D>>(name, contact));
+      std::pair<std::string, std::shared_ptr<ContactBase>>(name, contact));
 
   addSizes(known_contact6ds_[name]);
   if (active) activateContact6d(name);
@@ -182,7 +182,7 @@ void DynaCoM::removeContact6d(const std::string &name) {
   }
 }
 
-void DynaCoM::addSizes(const std::shared_ptr<Contact6D> &contact) {
+void DynaCoM::addSizes(const std::shared_ptr<ContactBase> &contact) {
   uni_rows_ += contact->uni_rows();
   fri_rows_ += contact->fri_rows();
   cols_ += contact->cols();
@@ -190,7 +190,7 @@ void DynaCoM::addSizes(const std::shared_ptr<Contact6D> &contact) {
   resizeMatrices();
 }
 
-void DynaCoM::removeSizes(const std::shared_ptr<Contact6D> &contact) {
+void DynaCoM::removeSizes(const std::shared_ptr<ContactBase> &contact) {
   uni_rows_ -= contact->uni_rows();
   fri_rows_ -= contact->fri_rows();
   cols_ -= contact->cols();
@@ -247,7 +247,7 @@ void DynaCoM::buildMatrices(const Eigen::Vector3d &groundCoMForce,
   fri_i_ = 0;
   j_ = 0;
   for (std::string name : active_contact6ds_) {
-    std::shared_ptr<Contact6D> &contact = known_contact6ds_[name];
+    std::shared_ptr<ContactBase> &contact = known_contact6ds_[name];
 
     uni_r = contact->uni_rows();
     fri_r = contact->fri_rows();
@@ -268,7 +268,7 @@ void DynaCoM::buildMatrices(const Eigen::Vector3d &groundCoMForce,
 
     contact->updateNewtonEuler(CoM, pinocchio::updateFramePlacement(
                                         model_, data_, contact->getFrameID()));
-    newton_euler_A_.block(0, j_, 6, cols) << contact->NE_A();
+    newton_euler_A_.block(0, j_, 6, cols) << contact->ne_A();
 
     uni_i_ += uni_r;
     fri_i_ += fri_r;

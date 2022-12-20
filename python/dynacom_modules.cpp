@@ -13,6 +13,8 @@ BOOST_PYTHON_MODULE(dynacom) {
   ENABLE_SPECIFIC_MATRIX_TYPE(Eigen::MatrixXd);
   ENABLE_SPECIFIC_MATRIX_TYPE(Eigen::VectorXd);
   // ENABLE_SPECIFIC_MATRIX_TYPE(Eigen::Isometry3d);
+  dynacom::python::exposeContactBase();
   dynacom::python::exposeContact6D();
+  dynacom::python::exposeContactPoint();
   dynacom::python::exposeDynaCoM();
 }
