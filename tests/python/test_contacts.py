@@ -25,7 +25,6 @@ visualize = False
 
 class TestDynaCoM(unittest.TestCase):
     def setUp(self):
-
         # CONTACTS ##
         settingsL = dynacom.Contact6DSettings()
         settingsL.frame_name = "leg_left_sole_fix_joint"
@@ -87,7 +86,6 @@ class TestDynaCoM(unittest.TestCase):
         self.biped = biped
 
     def test_contacts(self):
-
         leftSole = self.dyn.getContact("left_sole")
 
         self.assertTrue(leftSole.get_settings()["mu"] == self.setL.mu)
@@ -123,7 +121,6 @@ class TestDynaCoM(unittest.TestCase):
         self.assertTrue("right_sole" not in list(self.dyn.getActiveContacts()))
 
     def test_adjoint(self):
-
         H1 = pin.SE3(np.eye(3), np.array([0, 1, 0]))
         Adj1 = H1.toActionMatrixInverse().T
 
@@ -141,7 +138,6 @@ class TestDynaCoM(unittest.TestCase):
         self.assertTrue((Adj2 @ W2l == W2o_correct).all())
 
     def test_distribution_on_single_contact(self):
-
         self.dyn.deactivateContact6d("right_sole")
         pin.updateFramePlacements(self.dyn.model(), self.dyn.data())
         data = self.dyn.data()
@@ -163,7 +159,6 @@ class TestDynaCoM(unittest.TestCase):
         self.assertTrue((np.abs(lW - correct_lW) < 1e-4).all())
 
     def test_distribution_on_double_contact(self):
-
         com = np.array([0, 0, 2])
         cW = np.array([0, 0, 1, 0.01, 0, 0])
 
@@ -183,7 +178,6 @@ class TestDynaCoM(unittest.TestCase):
         )
 
     def test_dynamic_distribution(self):
-
         LF = self.dyn.getContact("left_sole").getPose()
         RF = self.dyn.getContact("right_sole").getPose()
         N_cycles = 5
@@ -206,7 +200,6 @@ class TestDynaCoM(unittest.TestCase):
         RF_wrench_traj = []
 
         for t in time:
-
             tb = t - Dt
             ta = t + Dt
 
