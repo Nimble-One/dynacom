@@ -35,7 +35,7 @@ class ContactBase {
 
  public:
   // ContactBase() {}
-  //  virtual ~Contact() {}
+  virtual ~ContactBase() = default;
 
   // setters
   void setPose(pinocchio::SE3 &pose) { oMs_ = pose; }
