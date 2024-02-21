@@ -413,4 +413,10 @@ void DynaCoM::distributeForce(const Eigen::Vector3d &groundCoMForce,
   // std::cout << "Distributed" << std::endl;
 }
 
+
+void DynaCoM::updateModelFramePlacement(const std::string &name, const pinocchio::SE3 &placement) {
+    model_.frames[model_.getFrameId(name)].placement = placement;
+    pinocchio::updateFramePlacement(model_, data_, model_.getFrameId(name));
+}
+
 }  // namespace dynacom

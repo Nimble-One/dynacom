@@ -152,6 +152,10 @@ class DynaCoM {
                        const Eigen::Vector3d &groundCoMTorque,
                        const Eigen::Vector3d &CoM);
 
+  // Update the placement of a FIXED frame relative to its parent joint
+  void updateModelFramePlacement(const std::string &name,
+                                 const pinocchio::SE3 &placement);
+                            
   // GETTERS
   /// @brief Please call computeDynamics first.
   const Eigen::Vector3d &getAMVariation() { return dL_; }
