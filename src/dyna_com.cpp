@@ -266,8 +266,11 @@ void DynaCoM::buildMatrices(const Eigen::Vector3d &groundCoMForce,
     regularization_A_.segment(j_, cols) << contact->reg_A();
     regularization_b_.segment(j_, cols) << contact->reg_b();
 
-    contact->updateNewtonEuler(CoM, pinocchio::updateFramePlacement(
-                                        model_, data_, contact->getFrameID()));
+    pinocchio::SE3 new_pose{pinocchio::updateFramePlacement(
+                                        model_, data_, contact->getFrameID())};
+    contact->setPose(new_pose);
+    contact->updateNewtonEuler(CoM, new_pose);
+    
     newton_euler_A_.block(0, j_, 6, cols) << contact->ne_A();
 
     uni_i_ += uni_r;
@@ -375,17 +378,11 @@ void DynaCoM::solveQP() {
 
 void DynaCoM::distribute() {
   Eigen::Index n, i = 0;
-  for (auto contact_pair : known_contact6ds_) {
-    if (std::find(active_contact6ds_.begin(), active_contact6ds_.end(),
-                  contact_pair.first) == active_contact6ds_.end()) {
-      // Contact not active
-      contact_pair.second->applyForce(Eigen::Matrix<double, 6, 1>::Zero());
-    } else {
-      // contact is active
-      n = static_cast<int>(contact_pair.second->cols());
-      contact_pair.second->applyForce(F_.segment(i, n));
+  for (std::string name : active_contact6ds_) {
+    std::shared_ptr<ContactBase> contact = known_contact6ds_[name];
+      n = static_cast<int>(contact->cols());
+      contact->applyForce(F_.segment(i, n));
       i += n;
-    }
   }
 }
 
