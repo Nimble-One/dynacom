@@ -33,6 +33,7 @@ struct DynaCoMSettings {
    * content of this file in a string.
    */
   std::string urdf = "";
+  double gravity = 9.81;
 
   friend std::ostream &operator<<(std::ostream &out,
                                   const DynaCoMSettings &obj) {

@@ -42,6 +42,7 @@ void DynaCoM::initialize(const DynaCoMSettings settings) {
   } else {
     throw std::runtime_error("DynaCoM::DynaCoM(): settings_.urdf is empty");
   }
+  model_.gravity.linear() = Eigen::Vector3d(0, 0, -settings_.gravity);
   // Build pinocchio cache.
   data_ = pinocchio::Data(model_);
 
@@ -49,7 +50,7 @@ void DynaCoM::initialize(const DynaCoMSettings settings) {
   for (size_t k = 0; k < model_.inertias.size(); ++k) {
     mass_ += model_.inertias[k].mass();
   }
-  weight_ = mass_ * model_.gravity981;
+  weight_ = mass_ * model_.gravity.linear();
   S_ << 0, -1, 1, 0;
   Sz_.setZero();
   Sz_.diagonal().segment<4>(2) << 1, 1, 1, 1;
