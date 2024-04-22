@@ -134,8 +134,7 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
     for (std::string name : active_contact6ds_) {
       std::shared_ptr<ContactBase> &contact = known_contact6ds_[name];
       CoPTorque_ +=
-          (toWorldCoPWrench(contact->getPose()) * contact->appliedForce())
-              .segment<3>(3);
+          toWorldCoPWrench(contact->getPose()).bottomLeftCorner<3, 3>() * contact->appliedForce();
     }
     cop_ = S_ * CoPTorque_.head<2>() / groundCoMForce_(2);
   }
