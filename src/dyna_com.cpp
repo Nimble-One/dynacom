@@ -13,13 +13,18 @@
 #include <pinocchio/algorithm/centroidal.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/parsers/urdf.hpp>
+#include <chrono>
 
 #include "dynacom/contact6d.hpp"
 
 namespace dynacom {
 
-DynaCoM::DynaCoM() {}
-DynaCoM::DynaCoM(const DynaCoMSettings settings) { initialize(settings); }
+DynaCoM::DynaCoM() 
+  : solver_{1, 0, 0} {}
+DynaCoM::DynaCoM(const DynaCoMSettings settings) 
+  : solver_{1, 0, 0} { 
+    initialize(settings); 
+}
 
 void DynaCoM::initialize(const DynaCoMSettings settings) {
   // Copy the settings internally.
@@ -115,6 +120,15 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
 
   groundCoMForce_ = data_.dhg.linear() - weight_ - externalWrench.head<3>();
   groundCoMTorque_ = dL_ - externalWrench.tail<3>();
+
+  if (groundCoMForce_[2] < 500.0 || groundCoMForce_[2] > 700.0) {
+    std::cout << "not good" << std::endl;
+  std::cout << "groundCoMForce_ " << groundCoMForce_.transpose() << std::endl;
+    std::cout << "groundCoMTorque_ " << groundCoMTorque_.transpose() << std::endl;
+    std::cout << posture.transpose() << std::endl;
+    std::cout << velocity.transpose() << std::endl;
+    std::cout << acceleration.transpose() << std::endl;
+  }
 
   if (flatHorizontalGround)
     cop_ =
@@ -340,6 +354,11 @@ void DynaCoM::solveQP() {
   int n_ineq(
       static_cast<int>(fri_i_ + uni_i_));  // number of inequalities constraints
 
+//   solver_ = proxsuite::proxqp::dense::QP<double>(dim, n_eq, 0);
+//   solver_.settings.default_rho = 1e-8;
+//   solver_.settings.eps_abs = 1e-4;
+//   solver_.settings.max_iter = 10;
+
   F_.resize(dim);
   G_.resize(dim, dim);
   g0_.resize(dim);
@@ -369,11 +388,20 @@ void DynaCoM::solveQP() {
   //  std::cout<<"ci "<<std::endl<<ci0_<<std::endl;
 
   activeSetSize_ = 0;
-  // const double precision =
+  
+//   const double precision =
   eiquadprog::solvers::solve_quadprog(G_, g0_, CE_, ce0_, CI_, ci0_, F_,
                                       activeSet_, activeSetSize_);
-  // std::cout<<"DynaCom::SolveQP, finished with precision =
-  // "<<precision<<std::endl;
+// //   std::cout<<"DynaCom::SolveQP, finished with precision = "<<precision<<std::endl;
+
+//   solver_.init(G_, g0_, CE_.transpose(), -ce0_, C_, {}, ci0_);
+//   solver_.solve();
+//   if (solver_.results.info.status != proxsuite::proxqp::QPSolverOutput::PROXQP_SOLVED) {
+//     std::cout << "DynaCom::SolveQP, failed to solve the QP using ProxQP" << std::endl;
+//     return;
+//   } else {
+//       F_ = solver_.results.x;
+//   }
 }
 
 void DynaCoM::distribute() {

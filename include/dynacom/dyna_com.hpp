@@ -19,6 +19,8 @@
 #include <map>
 #include <memory>
 #include "dynacom/contact6d.hpp"
+#include <proxsuite/proxqp/dense/dense.hpp>
+#include <proxsuite/proxqp/results.hpp>
 // clang-format on
 
 // @TODO: implement method copy of contacts to be able to duplicate them easily.
@@ -60,6 +62,8 @@ class DynaCoM {
   pinocchio::Data data_;
   double mass_;
   double inf_ = std::numeric_limits<double>::infinity();
+  
+  proxsuite::proxqp::dense::QP<double> solver_;
 
   // Lists of contacts
   // std::vector< std::shared_ptr<ContactBase> > known_contact6ds_;
