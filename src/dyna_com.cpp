@@ -357,7 +357,7 @@ void DynaCoM::solveQP() {
   // It can happen that the high-level command outputs less desired contacts than necessary, 
   // which would crash the QP solver (it does not check internally the correctness of the problem we send)
   F_.setZero(dim);
-  if (dim < n_eq || dim < n_ineq) {
+  if (dim < n_eq) {
     std::cerr << "DynaCoM does not have enough variables to satisfy all constraints. " <<
                  "It needs more contacts with the environment." << std::endl;
     return;
