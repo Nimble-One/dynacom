@@ -121,15 +121,6 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
   groundCoMForce_ = data_.dhg.linear() - weight_ - externalWrench.head<3>();
   groundCoMTorque_ = dL_ - externalWrench.tail<3>();
 
-  if (groundCoMForce_[2] < 500.0 || groundCoMForce_[2] > 700.0) {
-    std::cout << "not good" << std::endl;
-  std::cout << "groundCoMForce_ " << groundCoMForce_.transpose() << std::endl;
-    std::cout << "groundCoMTorque_ " << groundCoMTorque_.transpose() << std::endl;
-    std::cout << posture.transpose() << std::endl;
-    std::cout << velocity.transpose() << std::endl;
-    std::cout << acceleration.transpose() << std::endl;
-  }
-
   if (flatHorizontalGround)
     cop_ =
         data_.com[0].head<2>() + (S_ * groundCoMTorque_.head<2>() -
