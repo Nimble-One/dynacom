@@ -398,10 +398,14 @@ void DynaCoM::solveQP() {
 
   activeSetSize_ = 0;
   
-//   const double precision =
-  eiquadprog::solvers::solve_quadprog(G_, g0_, CE_, ce0_, CI_, ci0_, F_,
-                                      activeSet_, activeSetSize_);
-// //   std::cout<<"DynaCom::SolveQP, finished with precision = "<<precision<<std::endl;
+  const double precision = eiquadprog::solvers::solve_quadprog(G_, g0_, CE_, ce0_, CI_, ci0_, F_,
+                                                               activeSet_, activeSetSize_);
+
+  // Nominal precision is around 5e5
+  if (precision > 1e8) {
+    std::cout << "DynaCom failed to solve the QP" << std::endl;
+    F_.setZero();
+  }
 
 //   solver_.init(G_, g0_, CE_.transpose(), -ce0_, C_, {}, ci0_);
 //   solver_.solve();
