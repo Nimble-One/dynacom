@@ -121,15 +121,6 @@ void DynaCoM::computeDynamics(const Eigen::VectorXd &posture,
   groundCoMForce_ = data_.dhg.linear() - weight_ - externalWrench.head<3>();
   groundCoMTorque_ = dL_ - externalWrench.tail<3>();
 
-  if (groundCoMForce_[2] < 500.0 || groundCoMForce_[2] > 700.0) {
-    std::cout << "not good" << std::endl;
-  std::cout << "groundCoMForce_ " << groundCoMForce_.transpose() << std::endl;
-    std::cout << "groundCoMTorque_ " << groundCoMTorque_.transpose() << std::endl;
-    std::cout << posture.transpose() << std::endl;
-    std::cout << velocity.transpose() << std::endl;
-    std::cout << acceleration.transpose() << std::endl;
-  }
-
   if (flatHorizontalGround)
     cop_ =
         data_.com[0].head<2>() + (S_ * groundCoMTorque_.head<2>() -
@@ -354,6 +345,15 @@ void DynaCoM::solveQP() {
   int n_ineq(
       static_cast<int>(fri_i_ + uni_i_));  // number of inequalities constraints
 
+  // It can happen that the high-level command outputs less desired contacts than necessary, 
+  // which would crash the QP solver (it does not check internally the correctness of the problem we send)
+  F_.setConstant(dim, -1.0);
+  if (dim < n_eq) {
+    std::cerr << "DynaCoM does not have enough variables to satisfy all constraints. " <<
+                 "It needs more contacts with the environment." << std::endl;
+    return;
+  }
+
 //   solver_ = proxsuite::proxqp::dense::QP<double>(dim, n_eq, 0);
 //   solver_.settings.default_rho = 1e-8;
 //   solver_.settings.eps_abs = 1e-4;
@@ -389,10 +389,14 @@ void DynaCoM::solveQP() {
 
   activeSetSize_ = 0;
   
-//   const double precision =
-  eiquadprog::solvers::solve_quadprog(G_, g0_, CE_, ce0_, CI_, ci0_, F_,
-                                      activeSet_, activeSetSize_);
-// //   std::cout<<"DynaCom::SolveQP, finished with precision = "<<precision<<std::endl;
+  const double precision = eiquadprog::solvers::solve_quadprog(G_, g0_, CE_, ce0_, CI_, ci0_, F_,
+                                                               activeSet_, activeSetSize_);
+
+  // Nominal precision is around 5e5
+  if (precision > 1e8) {
+    std::cout << "DynaCom failed to solve the QP" << std::endl;
+    F_.setConstant(dim, -1.0);
+  }
 
 //   solver_.init(G_, g0_, CE_.transpose(), -ce0_, C_, {}, ci0_);
 //   solver_.solve();
