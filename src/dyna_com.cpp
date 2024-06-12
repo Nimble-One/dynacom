@@ -354,6 +354,15 @@ void DynaCoM::solveQP() {
   int n_ineq(
       static_cast<int>(fri_i_ + uni_i_));  // number of inequalities constraints
 
+  // It can happen that the high-level command outputs less desired contacts than necessary, 
+  // which would crash the QP solver (it does not check internally the correctness of the problem we send)
+  F_.setZero(dim);
+  if (dim < n_eq || dim < n_ineq) {
+    std::cerr << "DynaCoM does not have enough variables to satisfy all constraints. " <<
+                 "It needs more contacts with the environment." << std::endl;
+    return;
+  }
+
 //   solver_ = proxsuite::proxqp::dense::QP<double>(dim, n_eq, 0);
 //   solver_.settings.default_rho = 1e-8;
 //   solver_.settings.eps_abs = 1e-4;
