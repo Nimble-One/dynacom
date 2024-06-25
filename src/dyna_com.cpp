@@ -349,8 +349,11 @@ void DynaCoM::solveQP() {
   // which would crash the QP solver (it does not check internally the correctness of the problem we send)
   F_.setConstant(dim, -1.0);
   if (dim < n_eq) {
+    if (failure_count == 0) {
     std::cerr << "DynaCoM does not have enough variables to satisfy all constraints. " <<
                  "It needs more contacts with the environment." << std::endl;
+    }
+    failure_count++;
     return;
   }
 
@@ -394,10 +397,18 @@ void DynaCoM::solveQP() {
 
   // Nominal precision is around 5e5
   if (precision > 1e8) {
-    std::cout << "DynaCom failed to solve the QP" << std::endl;
     F_.setConstant(dim, -1.0);
+    if (failure_count == 0) {
+      std::cerr << "DynaCoM failed to solve the QP" << std::endl;
+    }
+    failure_count++;
+    return;
   }
 
+  if (failure_count > 0) {
+    std::cerr << "DynaCoM failed during " << failure_count << " iterations" << std::endl;
+    failure_count = 0;
+  }
 //   solver_.init(G_, g0_, CE_.transpose(), -ce0_, C_, {}, ci0_);
 //   solver_.solve();
 //   if (solver_.results.info.status != proxsuite::proxqp::QPSolverOutput::PROXQP_SOLVED) {

@@ -36,6 +36,7 @@ struct DynaCoMSettings {
    */
   std::string urdf = "";
   double gravity = 9.81;
+  
 
   friend std::ostream &operator<<(std::ostream &out,
                                   const DynaCoMSettings &obj) {
@@ -62,6 +63,7 @@ class DynaCoM {
   pinocchio::Data data_;
   double mass_;
   double inf_ = std::numeric_limits<double>::infinity();
+  int failure_count = 0; // To avoid spamming the console with error messages
   
   proxsuite::proxqp::dense::QP<double> solver_;
 
